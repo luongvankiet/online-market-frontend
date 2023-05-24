@@ -10,4 +10,10 @@ export const isValidEmail = (email: string) => {
   return regex.test(email);
 }
 
+export const numberFormat = (value: any) =>
+  new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD'
+  }).format(value);
+
 export const capitalize = (s: string) => (s && s[0].toUpperCase() + s.slice(1)) || ""

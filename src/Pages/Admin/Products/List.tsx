@@ -16,6 +16,7 @@ const List: React.FunctionComponent = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRows, setTotalRows] = useState<any>(0);
   const [searchTerm, setSearchTerm] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [openConfirmDeleteManyModal, setOpenConfirmDeleteManyModal] = useState(false);
@@ -28,10 +29,11 @@ const List: React.FunctionComponent = () => {
   const navigate = useNavigate();
 
   const getProductList = () => {
-    setIsLoading(true);
-    ProductService.getList({ limit: rowsPerPage, page: currentPage, sellerId: currentUser?.id, search: searchTerm })
+    // setIsLoading(true);
+    ProductService.getList({ perPage: rowsPerPage, page: currentPage, sellerId: currentUser?.id, search: searchTerm })
       .then((response: ICollection<IProduct>) => {
         setProducts(response.data);
+        setTotalRows(response.meta.total);
       })
       .finally(() => setIsLoading(false));
   }
@@ -116,13 +118,12 @@ const List: React.FunctionComponent = () => {
 
   useEffect(() => {
     getProductList()
-  }, [currentPage, rowsPerPage]);
+  }, [currentPage, rowsPerPage, currentUser]);
 
   useEffect(() => {
     setCurrentPage(1);
     getProductList();
   }, [searchTerm])
-
 
   const onConfirmDeleteOne = () => {
     if (!selectedProduct) {
@@ -233,6 +234,9 @@ const List: React.FunctionComponent = () => {
         onSelectedRowsChange={({ selectedRows }) => setSelectedProducts(selectedRows)}
         onChangePage={(page) => setCurrentPage(page)}
         onChangeRowsPerPage={(rowsPerPage) => setRowsPerPage(rowsPerPage)}
+        paginationTotalRows={totalRows}
+        paginationServer
+        paginationDefaultPage={currentPage}
         progressPending={isLoading}
         progressComponent={<CircularProgress color="neutral" sx={{ margin: '1rem 0' }} />}
         clearSelectedRows={toggleClearRows}

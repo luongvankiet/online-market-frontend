@@ -3,16 +3,8 @@ import { ILogin } from "../Models/Auth";
 import utils from "../Utils";
 import { api } from "../paths";
 
-export const login = (credentials: ILogin) => {
-  // return utils.fetch.httpGet('/sanctum/csrf-cookie')
-  //   .then((response: any) => {
-  //     return utils.fetch.httpPost(api.auth.login, credentials)
-  //       .then((response: IResource<IUser>) => {
-  //         let user: any = response.data
-  //         user = { ...user, expired_at: moment().add(2, 'hours').toISOString() }
-  //         localStorage.setItem('user', JSON.stringify(user));
-  //       })
-  //   })
+export const login = async (credentials: ILogin) => {
+  // await utils.fetch.httpGet('/sanctum/csrf-cookie');
   return utils.fetch.httpPost(api.auth.login, credentials);
 }
 

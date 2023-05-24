@@ -1,21 +1,24 @@
-import { Box, Breadcrumbs, Button, Card, CircularProgress, IconButton, Menu, Typography } from "@mui/joy";
+import { Box, Breadcrumbs, Button, Card, CircularProgress, Grid, IconButton, Input, Menu, Typography } from "@mui/joy";
 import moment from "moment";
 import { useContext, useEffect, useMemo, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Link, useNavigate } from "react-router-dom";
 import { ConfirmModal, Dropdown } from "../../../Components";
-import { AddIcon, BorderColorRoundedIcon, DeleteRoundedIcon, HomeIcon, KeyboardArrowRightIcon } from "../../../Components/Icons";
+import { AddIcon, BorderColorRoundedIcon, DeleteRoundedIcon, HomeIcon, KeyboardArrowRightIcon, SearchIcon } from "../../../Components/Icons";
 import { ICategory } from "../../../Models/Category";
 import { ICollection } from "../../../Models/Resource";
 import * as CategoryService from '../../../Services/CategoryService';
 import utils from "../../../Utils";
 import { AppContext } from "../../../App";
 import { AdminContext } from "../../../Layouts/Admin";
+import debounce from 'lodash.debounce';
 
 const List: React.FunctionComponent = () => {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRows, setTotalRows] = useState<any>(0);
+  const [searchTerm, setSearchTerm] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [openConfirmDeleteManyModal, setOpenConfirmDeleteManyModal] = useState(false);
   const [openConfirmDeleteOneModal, setOpenConfirmDeleteOneModal] = useState(false);
@@ -27,10 +30,11 @@ const List: React.FunctionComponent = () => {
   const navigate = useNavigate();
 
   const getCategoryList = () => {
-    setIsLoading(true);
-    CategoryService.getList({ limit: rowsPerPage, page: currentPage, sellerId: currentUser?.id })
+    // setIsLoading(true);
+    CategoryService.getList({ perPage: rowsPerPage, page: currentPage, search: searchTerm, sellerId: currentUser?.id })
       .then((response: ICollection<ICategory>) => {
         setCategories(response.data);
+        setTotalRows(response.meta.total);
       })
       .finally(() => setIsLoading(false));
   }
@@ -130,7 +134,12 @@ const List: React.FunctionComponent = () => {
 
   useEffect(() => {
     getCategoryList()
-  }, [currentPage, rowsPerPage]);
+  }, [currentPage, rowsPerPage, currentUser]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    getCategoryList();
+  }, [searchTerm])
 
   return <>
     <Breadcrumbs
@@ -176,11 +185,22 @@ const List: React.FunctionComponent = () => {
     </Box >
 
     <Card>
-      {selectedCategories?.length > 0 && <Box sx={{ width: 300 }}>
-        <Dropdown title={`${selectedCategories.length} selected`} items={[
-          { text: 'Delete selected items', onClick: () => setOpenConfirmDeleteManyModal(true) }
-        ]} />
-      </Box>}
+      <Grid container spacing={2}>
+        <Grid xs={3} sm={2} xl={1}>
+          <Box sx={{ width: '100%' }}>
+            <Dropdown
+              title={selectedCategories.length > 0 ? `${selectedCategories.length} selected` : 'Actions'} fullWidth
+              items={[
+                { text: 'Delete selected items', onClick: () => setOpenConfirmDeleteManyModal(true) }
+              ]}
+            />
+          </Box>
+        </Grid>
+        <Grid xs={9} sm={10} xl={11}>
+          <Input startDecorator={<SearchIcon />}
+            onChange={debounce((e: any) => setSearchTerm(e.target.value), 500)} />
+        </Grid>
+      </Grid>
 
       <DataTable
         columns={columns}
@@ -191,6 +211,9 @@ const List: React.FunctionComponent = () => {
         onChangePage={(page) => setCurrentPage(page)}
         onChangeRowsPerPage={(rowsPerPage) => setRowsPerPage(rowsPerPage)}
         progressPending={isLoading}
+        paginationTotalRows={totalRows}
+        paginationServer
+        paginationDefaultPage={currentPage}
         progressComponent={<CircularProgress color="neutral" sx={{ margin: '1rem 0' }} />}
         clearSelectedRows={toggleClearRows}
       />

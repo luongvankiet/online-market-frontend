@@ -99,5 +99,10 @@ export const api = {
     index: '/api/products',
     detail: '/api/products/{{id}}',
     deleteMany: '/api/products/delete-many',
+  },
+  orders: {
+    index: '/api/orders',
+    detail: '/api/orders/{{id}}',
+    deleteMany: '/api/orders/delete-many',
   }
 }

@@ -1,137 +1,104 @@
-import { useMemo } from 'react';
-import { Box, Breadcrumbs, Card, Chip, IconButton, Link, Typography } from "@mui/joy"
-import DataTable from "react-data-table-component";
-
+import { useContext, useEffect, useMemo, useState } from 'react';
 import moment from "moment";
-import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
-import Home from '@mui/icons-material/Home';
-import BorderColor from '@mui/icons-material/BorderColor';
-import Delete from '@mui/icons-material/Delete';
+import { Box, Breadcrumbs, Card, Chip, CircularProgress, IconButton, Stack, Typography } from "@mui/joy"
+import DataTable from "react-data-table-component";
+import * as OrderService from '../../../Services/OrderService';
+import { AdminContext } from '../../../Layouts/Admin';
+import { BorderColorRoundedIcon, DeleteRoundedIcon, HomeIcon, KeyboardArrowRightIcon } from '../../../Components/Icons';
+import { Link, useNavigate } from "react-router-dom";
+import utils from '../../../Utils';
 
-const Dashboard = () => {
+const List = () => {
+  const [orders, setOrders] = useState<any>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRows, setTotalRows] = useState<any>(0);
+  const [searchTerm, setSearchTerm] = useState<string>();
+  const [currentUser] = useContext(AdminContext);
 
-  const products = [
-    {
-      "name": "Elvis Presley",
-      "shipTo": 'Tupelo, MS',
-      "status": "Completed",
-      "productsCount": 6,
-      "totalPrice": '$412',
-      "updatedAt": "2023-04-15T06:16:23.916Z",
-    },
-    {
-      "name": "Paul McCartney",
-      "shipTo": 'London, UK',
-      "status": "Processing",
-      "productsCount": 10,
-      "totalPrice": '$2141',
-      "updatedAt": "2023-04-15T06:16:23.916Z",
-    },
-    {
-      "name": "Paul McCartney",
-      "shipTo": 'London, UK',
-      "status": "Processing",
-      "productsCount": 10,
-      "totalPrice": '$841',
-      "updatedAt": "2023-04-15T06:16:23.916Z",
-    },
-    {
-      "name": "Bruce Springsteen",
-      "shipTo": 'London, UK',
-      "status": "Cancelled",
-      "productsCount": 2,
-      "totalPrice": '$100.81',
-      "updatedAt": "2023-04-15T06:16:23.916Z",
-    },
-    {
-      "name": "Michael Jackson",
-      "shipTo": 'Long Branch, NJ',
-      "status": "Cancelled",
-      "productsCount": 32,
-      "totalPrice": '$1100.81',
-      "updatedAt": "2023-04-15T06:16:23.916Z",
-    },
-  ];
-
-  const getStatus = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return <Chip variant="soft" color="success">{status}</Chip>
-      case 'Delivering':
-        return <Chip variant="soft" color="warning">{status}</Chip>
-      case 'Shipped':
-        return <Chip variant="soft" color="success">{status}</Chip>
-      case 'Processing':
-        return <Chip variant="soft" color="primary">{status}</Chip>
-      case 'Cancelled':
-      case 'Unpaid':
-        return <Chip variant="soft" color="danger">{status}</Chip>
-      default:
-        return <Chip variant="soft" color="primary">{status}</Chip>
-    }
+  const getOrderList = () => {
+    OrderService.getList({ perPage: rowsPerPage, page: currentPage, search: searchTerm, sellerId: currentUser?.id })
+      .then((response) => {
+        setOrders(response.data);
+        setTotalRows(response.meta.total);
+      })
   }
 
   const columns = useMemo(() => [
     {
-      name: 'Name',
-      selector: (row: any) => row.name,
+      name: 'Order Code',
+      selector: (order: any) => order.order_code,
       sortable: true,
     },
     {
       name: 'Ship To',
-      selector: (row: any) => row.shipTo || '--',
+      selector: (order: any) => '--',
+      cell: (order: any) => <Stack sx={{my: 1}}>
+        <Typography level='body3' sx={{fontWeight: 'bold'}}>{order.shipping_address?.name}</Typography>
+        <Typography level='body3'>{order.shipping_address?.phone}</Typography>
+        <Typography level='body3'>{order.shipping_address?.email}</Typography>
+      </Stack>,
       sortable: true,
     },
     {
       name: 'Status',
-      selector: (row: any) => row.status || '--',
-      cell: (row: any) => getStatus(row.status),
-      sortable: true,
-    },
-    {
-      name: 'Products',
-      selector: (row: any) => row.productsCount,
+      selector: (order: any) => order.status || '--',
+      cell: (order: any) => <Chip variant='soft' color={order.status_color} size="sm">{order.status_name}</Chip>,
       sortable: true,
     },
     {
       name: 'Sale Amount',
-      selector: (row: any) => row.totalPrice || '--',
+      selector: (order: any) => order.total_price ? utils.string.numberFormat(order.total_price) : 0,
       sortable: true,
     },
     {
       name: 'Last Created At',
-      selector: (row: any) => row.updatedAt,
-      cell: (row: any) => row.updatedAt ? moment(row.updatedAt).format('YYYY-MM-DD hh:mm:ss A').toLocaleString() : '--',
+      selector: (order: any) => order.updated_at,
+      cell: (order: any) => order.updated_at ? moment(order.updated_at).format('YYYY-MM-DD hh:mm:ss A').toLocaleString() : '--',
       sortable: true,
     },
     {
       name: "Actions",
       button: true,
       cell: (row: any) => (<>
-        <IconButton variant="plain" size="sm"
-          color="neutral">
-          <BorderColor />
+        <IconButton
+          variant="plain"
+          size="sm"
+          color="neutral"
+        // onClick={() => navigate(`/products/${product.id}`)}
+        >
+          <BorderColorRoundedIcon />
         </IconButton>
 
-        <IconButton variant="plain" color="danger">
-          <Delete />
+        <IconButton
+          variant="plain"
+          color="danger"
+          size="sm"
+        // onClick={() => {
+        //   setOpenConfirmDeleteOneModal(true);
+        //   setSelectedProduct(product);
+        // }}
+        >
+          <DeleteRoundedIcon />
         </IconButton>
-
-        {/* <Link className="btn btn-icon btn-sm btn-flat-primary my-1" to={`/users/${row._id}`}>
-          <i className="feather icon-edit"></i>
-        </Link>
-
-        <Button className="btn btn-icon btn-sm btn-flat-danger my-1" onClick={() => onSelectDelete(row)}>
-          <i className="feather icon-trash"></i>
-        </Button> */}
       </>)
     }
   ], []);
+
+  useEffect(() => {
+    getOrderList()
+  }, [currentPage, rowsPerPage, currentUser]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    getOrderList();
+  }, [searchTerm])
+
   return <>
     <Breadcrumbs
       size="sm"
       aria-label="breadcrumbs"
-      separator={<KeyboardArrowRight />}
+      separator={<KeyboardArrowRightIcon />}
       sx={{
         '--Breadcrumbs-gap': '1rem',
         '--Icon-fontSize': '16px',
@@ -140,21 +107,10 @@ const Dashboard = () => {
         px: 0,
       }}
     >
-      <Link
-        underline="none"
-        color="neutral"
-        fontSize="inherit"
-        href="#some-link"
-        aria-label="Home"
-      >
-        <Home />
+      <Link className="text-muted text-decoration-none" to="/">
+        <HomeIcon />
       </Link>
-      <Link
-        underline="hover"
-        color="neutral"
-        fontSize="inherit"
-        href="#some-link"
-      >
+      <Link className="text-muted text-decoration-none" to="/">
         Dashboard
       </Link>
       <Typography fontSize="inherit" variant="soft">
@@ -178,10 +134,20 @@ const Dashboard = () => {
     <Card>
       <DataTable
         columns={columns}
-        data={products}
+        data={orders}
         selectableRows
-        pagination />
+        pagination
+        // onSelectedRowsChange={({ selectedRows }) => setSelectedCategories(selectedRows)}
+        onChangePage={(page) => setCurrentPage(page)}
+        onChangeRowsPerPage={(rowsPerPage) => setRowsPerPage(rowsPerPage)}
+        // progressPending={isLoading}
+        paginationTotalRows={totalRows}
+        paginationServer
+        paginationDefaultPage={currentPage}
+        progressComponent={<CircularProgress color="neutral" sx={{ margin: '1rem 0' }} />}
+      // clearSelectedRows={toggleClearRows}
+      />
     </Card>
   </>
 }
-export default Dashboard
+export default List
