@@ -17,3 +17,11 @@ export const create = (body: any) => {
 export const update = (id: number, body: any) => {
   return utils.fetch.httpPut(utils.url.replaceId(api.categories.detail, id), body);
 }
+
+export const deleteOne = (id: any) => {
+  return utils.fetch.httpDelete(utils.url.replaceId(api.categories.detail, id));
+}
+
+export const deleteMany = (ids: any) => {
+  return utils.fetch.httpPost(api.categories.deleteMany, { category_ids: ids });
+}

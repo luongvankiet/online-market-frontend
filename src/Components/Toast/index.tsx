@@ -2,7 +2,7 @@ import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar"
 import React from "react"
 
-interface ToastPros {
+export interface ToastPros {
   open?: boolean;
   onClose?: (e: any) => void;
   message?: string;
@@ -13,7 +13,7 @@ const Toast: React.FunctionComponent<ToastPros> = (props) => {
   return <>
     <Snackbar
       open={props.open}
-      autoHideDuration={6000}
+      autoHideDuration={5000}
       anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       onClose={props.onClose}
     >

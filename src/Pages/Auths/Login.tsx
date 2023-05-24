@@ -1,30 +1,28 @@
 import { Box, Button, Checkbox, FormControl, FormLabel, Input, Link, Typography } from "@mui/joy"
 import { GoogleIcon } from "../../Components/Icons"
-import { useState } from "react";
+import { useContext, useState } from "react";
 import utils from "../../Utils";
 import * as AuthService from '../../Services/AuthService';
-import Toast from "../../Components/Toast";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../../App";
+import moment from "moment";
 
 const Login: React.FunctionComponent = () => {
-  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<any>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [toast, setToast] = useState<any>({});
+  const { setToast } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const isValid = () => {
     let isValid = true
     let errors = {}
 
-    if (!email) {
-      errors = { ...errors, email: 'Please provide email address!' }
-      isValid = false
-    }
-
-    if (email && !utils.string.isValidEmail(email)) {
-      errors = { ...errors, email: 'Please provide a valid email address!' }
+    if (!username) {
+      errors = { ...errors, username: 'Please provide username!' }
       isValid = false
     }
 
@@ -45,22 +43,30 @@ const Login: React.FunctionComponent = () => {
 
     if (!isValid()) {
       setIsLoading(false)
-      // Notify('Login failed!', 'danger')
       return
     }
 
     const credentials = {
-      email: email,
+      username: username,
       password: password,
       remember_me: rememberMe,
     }
 
     AuthService.login(credentials)
-      .then(response => {
+      .then((response: any) => {
+        if (response.status === 'Error') {
+          setToast({ open: true, message: response.message, type: 'error' })
+          return;
+        }
+
+        let user: any = response.data;
+        user = { ...user, expired_at: moment().add(2, 'hours').toISOString() }
+        localStorage.setItem('user', JSON.stringify(user));
+
         setToast({ open: true, message: 'Login successfully!', type: 'success' })
         setTimeout(() => {
-          window.location.href = '/'
-        }, 300);
+          navigate('/');
+        }, 500);
       })
       .catch(() => {
         setToast({ open: true, message: 'Login failed, please try again!', type: 'error' })
@@ -79,15 +85,15 @@ const Login: React.FunctionComponent = () => {
     </div>
     <form onSubmit={onSubmit}>
       <FormControl>
-        <FormLabel>Email</FormLabel>
-        <Input placeholder="Enter your email"
-          type="email"
-          name="email"
-          error={!!errors?.email}
-          value={email}
-          onChange={e => setEmail(e.target.value)}
+        <FormLabel>Username</FormLabel>
+        <Input placeholder="Enter your username"
+          type="text"
+          name="username"
+          error={!!errors?.username}
+          value={username}
+          onChange={e => setUsername(e.target.value)}
         />
-        {errors?.email && <Typography color="danger" fontSize="sm">{errors.email}</Typography>}
+        {errors?.username && <Typography color="danger" fontSize="sm">{errors.username}</Typography>}
 
       </FormControl>
       <FormControl required>
@@ -131,8 +137,6 @@ const Login: React.FunctionComponent = () => {
     >
       Sign in with Google
     </Button>
-
-    <Toast open={toast?.open} onClose={() => setToast({ open: false })} type={toast?.type} message={toast?.message} />
   </>
 }
 

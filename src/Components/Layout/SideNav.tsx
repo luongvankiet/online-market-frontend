@@ -3,6 +3,7 @@ import { Box, IconButton, List, ListItem, ListItemButton, ListItemContent, ListI
 import { views } from "../../paths";
 import React from "react";
 import utils from "../../Utils";
+import { useNavigate } from "react-router-dom";
 
 interface SideNavProps {
   currentUser?: any;
@@ -10,6 +11,8 @@ interface SideNavProps {
 }
 
 const SideNav: React.FunctionComponent<SideNavProps> = (props) => {
+  const navigate = useNavigate();
+
   return <>
     <Box
       className="SecondSidebar-overlay"
@@ -45,7 +48,7 @@ const SideNav: React.FunctionComponent<SideNavProps> = (props) => {
         p: 2,
         py: 3,
         flexShrink: 0,
-        display: 'flex',
+        display: { xs: 'none', lg: 'flex' },
         flexDirection: 'column',
         gap: 2,
       }}
@@ -67,9 +70,7 @@ const SideNav: React.FunctionComponent<SideNavProps> = (props) => {
           }
 
           return <ListItem key={utils.newGuid()}>
-            <ListItemButton
-              href={route.action}
-              component="a">
+            <ListItemButton onClick={() => navigate(route.action)}>
               <ListItemDecorator>
                 {route.icon}
               </ListItemDecorator>
@@ -78,17 +79,7 @@ const SideNav: React.FunctionComponent<SideNavProps> = (props) => {
           </ListItem>
         })}
       </List>
-      <Box sx={{ pl: 1, mt: 'auto', display: 'flex', alignItems: 'center' }}>
-        <div>
-          <Typography fontWeight="lg" level="body2" sx={{textAlign: 'center'}}>
-            {props.currentUser?.name}
-          </Typography>
-          <Typography level="body2">{props.currentUser?.email}</Typography>
-        </div>
-        <IconButton variant="plain" sx={{ ml: 'auto' }}>
-          <i data-feather="log-out" />
-        </IconButton>
-      </Box>
+
     </Sheet>
   </>
 }

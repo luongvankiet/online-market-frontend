@@ -33,7 +33,7 @@ const Auth: React.FunctionComponent = () => {
           }
         }}
       >
-        <Card variant="outlined" sx={{ width: 320, p: 5 }}>
+        <Card variant="outlined" sx={{p: 5 }}>
           <Outlet />
         </Card>
       </Box>

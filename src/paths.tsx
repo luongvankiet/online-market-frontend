@@ -3,10 +3,9 @@ import Login from "./Pages/Auths/Login";
 import * as Categories from "./Pages/Admin/Categories";
 import * as Products from "./Pages/Admin/Products";
 import * as Orders from "./Pages/Admin/Orders";
-import Inventory from '@mui/icons-material/Inventory';
-import BarChart from '@mui/icons-material/BarChart';
-import ShoppingCart from '@mui/icons-material/ShoppingCart';
-import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
+import { BarChartIcon, FormatAlignLeftIcon } from "./Components/Icons";
+import InventoryIcon from "./Components/Icons/IventoryIcon";
+import ShoppingCartIcon from "./Components/Icons/ShoppingCardIcon";
 
 interface ViewComponent {
   name: string;
@@ -22,7 +21,7 @@ export const views: ViewComponent[] = [
   {
     name: 'Dashboard',
     action: '/',
-    icon: <BarChart />,
+    icon: <BarChartIcon />,
     element: <Dashboard />
   },
   {
@@ -32,21 +31,39 @@ export const views: ViewComponent[] = [
     element: <Categories.List />
   },
   {
-    name: 'Categories',
+    name: 'Create Category',
     action: '/categories/create',
     element: <Categories.Create />,
     isRoute: true,
   },
   {
+    name: 'Edit Category',
+    action: '/categories/:id',
+    element: <Categories.Edit />,
+    isRoute: true,
+  },
+  {
     name: 'Products',
     action: '/products',
-    icon: <Inventory />,
+    icon: <InventoryIcon />,
     element: <Products.List />
+  },
+  {
+    name: 'Create Products',
+    action: '/products/create',
+    element: <Products.Create />,
+    isRoute: true,
+  },
+  {
+    name: 'Edit Products',
+    action: '/products/:id',
+    element: <Products.Edit />,
+    isRoute: true,
   },
   {
     name: 'Orders',
     action: '/orders',
-    icon: <ShoppingCart />,
+    icon: <ShoppingCartIcon />,
     element: <Orders.List />
   },
 ];
@@ -61,7 +78,8 @@ export const authViews: ViewComponent[] = [
 
 export const api = {
   auth: {
-    login: '/api/auth/login',
+    login: 'http://170.64.156.57:8001/api/login/seller',
+    // login: '/api/auth/login',
     logout: '/api/auth/logout',
     user: '/api/user',
   },
@@ -76,5 +94,10 @@ export const api = {
     index: '/api/categories',
     detail: '/api/categories/{{id}}',
     deleteMany: '/api/categories/delete-many',
+  },
+  products: {
+    index: '/api/products',
+    detail: '/api/products/{{id}}',
+    deleteMany: '/api/products/delete-many',
   }
 }

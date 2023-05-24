@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Box, Button, CssVarsProvider, IconButton, Menu, MenuItem, Typography } from "@mui/joy";
 import { Link, Outlet } from "react-router-dom";
 import { Drawer, Header, Menu as MenuLayout, SideNav } from '../Components/Layout';
@@ -8,55 +8,50 @@ import { IUser } from "../Models/User";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import * as AuthService from '../Services/AuthService';
-import { IResource } from "../Models/Resource";
-import Toast from '../Components/Toast';
+import { AppContext } from '../App';
 
+export const AdminContext = React.createContext<any>(null);
 
 const Admin: React.FunctionComponent = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const [toast, setToast] = useState<any>({ open: false, message: '', type: 'success' });
 
   const [currentUser, setCurrentUser] = useState<IUser>();
+  const [user, setUser] = useState<any>(localStorage.getItem('user'));
+  const { setToast } = useContext(AppContext);
+
   const navigate = useNavigate();
-
-  const getAuthenticatedUser = () => {
-    let user = localStorage.getItem('user');
-
-    if (user) {
-      let currentUser = JSON.parse(user);
-      if (moment().isAfter(moment(currentUser.expired_at))) {
-        localStorage.removeItem('user');
-        window.location.href = '/auth/login';
-      }
-
-      setCurrentUser(currentUser);
-    } else {
-      AuthService.getAuthenticatedUser()
-        .then((response: IResource<IUser>) => {
-          let user: any = response.data
-          user = { ...user, expired_at: moment().add(2, 'hours') }
-          localStorage.setItem('user', JSON.stringify(user));
-          setCurrentUser(response.data);
-        })
-        .catch(() => {
-          setToast({ open: true, message: 'You don`t have permission to access this page. Please login and comback!', type: 'error' })
-          navigate('/auth/login');
-        })
-    }
-  }
 
   const onLogout = (event: any) => {
     event.preventDefault();
-    AuthService.logout().then(response => {
-      navigate('/auth/login');
-    });
+    if (localStorage.getItem('user')) {
+      localStorage.removeItem('user')
+    }
+
+    navigate('/auth/login');
   }
 
   useEffect(() => {
-    getAuthenticatedUser();
-  }, []);
+    if (!user) {
+      setToast({
+        open: true,
+        message: 'You don\'t have permission to access this page, please login and try again!',
+        type: 'error'
+      })
+      navigate('/auth/login');
+      return;
+    }
+
+    const userData = JSON.parse(user);
+    if (moment().isAfter(moment(userData.expired_at))) {
+      localStorage.removeItem('user');
+      navigate('/auth/login');
+      return
+    }
+
+    setCurrentUser(userData);
+  }, [user]);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -73,20 +68,14 @@ const Admin: React.FunctionComponent = () => {
         </Drawer>
       )}
 
-      {/* <Root
-        sx={{
-          ...(drawerOpen && {
-            height: '100vh',
-            overflow: 'hidden',
-          }),
-        }}
-      >
-        <Header>
+      <Header>
+        <Box sx={{ display: 'flex' }}>
           <IconButton
             variant="outlined"
+            color="neutral"
             size="sm"
             onClick={() => setDrawerOpen(true)}
-            sx={{ display: { sm: 'none' } }}
+            sx={{ display: { lg: 'none' }, mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
@@ -95,67 +84,7 @@ const Admin: React.FunctionComponent = () => {
               Online Market
             </Typography>
           </Link>
-
-          <Button
-            id="project-menu"
-            aria-controls={open ? 'project-menu' : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? 'true' : undefined}
-            variant="plain"
-            color="neutral"
-            onClick={handleClick}
-          >
-            <div>
-              <Typography level="body1">
-                Olivia Ryhe
-              </Typography>
-              <Typography level="body2">olivia@email.com</Typography>
-            </div>
-          </Button>
-          <Menu
-            id="project-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="project-menu"
-          >
-            <MenuItem>Profile</MenuItem>
-            <MenuItem>My account</MenuItem>
-          </Menu>
-        </Header>
-        <SideNav>
-          <MenuLayout />
-        </SideNav>
-
-        <Box
-          component="main"
-          className="MainContent"
-          sx={{
-            p: 4,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100dvh',
-            gap: 1,
-          }}
-        >
-          <Outlet />
         </Box>
-      </Root>
-      <Header>
-        <IconButton
-          variant="outlined"
-          size="sm"
-          onClick={() => setDrawerOpen(true)}
-          sx={{ display: { sm: 'none' } }}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <Typography level="h4">
-            Online Market
-          </Typography>
-        </Link>
 
         <Button
           id="project-menu"
@@ -168,55 +97,8 @@ const Admin: React.FunctionComponent = () => {
         >
           <div>
             <Typography level="body1">
-              Olivia Ryhe
+              {currentUser?.username}
             </Typography>
-            <Typography level="body2">olivia@email.com</Typography>
-          </div>
-        </Button>
-        <Menu
-          id="project-menu"
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="project-menu"
-        >
-          <MenuItem>Profile</MenuItem>
-          <MenuItem>My account</MenuItem>
-        </Menu>
-      </Header>
-      <SideNav>
-        <MenuLayout />
-      </SideNav> */}
-
-      <Header>
-        <IconButton
-          variant="outlined"
-          size="sm"
-          onClick={() => setDrawerOpen(true)}
-          sx={{ display: { sm: 'none' } }}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <Typography level="h4">
-            Online Market
-          </Typography>
-        </Link>
-
-        <Button
-          id="project-menu"
-          aria-controls={open ? 'project-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? 'true' : undefined}
-          variant="plain"
-          color="neutral"
-          onClick={handleClick}
-        >
-          <div>
-            <Typography level="body1">
-              {currentUser?.name}
-            </Typography>
-            <Typography level="body2">{currentUser?.email}</Typography>
           </div>
         </Button>
         <Menu
@@ -232,7 +114,7 @@ const Admin: React.FunctionComponent = () => {
         </Menu>
       </Header>
       <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
-        <SideNav  currentUser={currentUser}/>
+        <SideNav currentUser={currentUser} />
         <Box
           component="main"
           className="MainContent"
@@ -258,12 +140,12 @@ const Admin: React.FunctionComponent = () => {
             gap: 1,
           })}
         >
-          <Outlet></Outlet>
+          <AdminContext.Provider value={[currentUser, setCurrentUser]}>
+            <Outlet></Outlet>
+          </AdminContext.Provider>
         </Box>
       </Box>
     </CssVarsProvider>
-
-    <Toast type={toast.type} message={toast.message} open={toast.open} onClose={(() => setToast({ open: false }))} />
   </>
 }
 

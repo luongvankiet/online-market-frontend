@@ -1,7 +1,7 @@
 import { Box, Breadcrumbs, Button, Card, FormControl, FormLabel, Grid, Input, Switch, Typography } from "@mui/joy";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../../../App";
 import DatePicker from "../../../Components/Form/DatePicker";
 import Editor from "../../../Components/Form/Editor";
@@ -12,16 +12,26 @@ import * as CategoryService from '../../../Services/CategoryService';
 import utils from "../../../Utils";
 import { IResource } from "../../../Models/Resource";
 
-const Create: React.FunctionComponent = () => {
+const Edit: React.FunctionComponent = () => {
   const [currentUser, setCurrentUser] = useContext(AdminContext);
   const [name, setName] = useState<string>();
-  const [description, setDescription] = useState();
-  const [isLoading, setIsLoading] = useState(false);
-  const [publishedAt, setPublishedAt] = useState<string>(moment().toISOString());
+  const [description, setDescription] = useState<string>();
+  const [publishedAt, setPublishedAt] = useState<string | undefined>(moment().toISOString());
   const [isPublished, setIsPublised] = useState<boolean>(true);
   const [errors, setErrors] = useState<any>();
+  const [isLoading, setIsLoading] = useState(false);
+  const { id } = useParams<{ id: any }>();
   const { setToast } = useContext(AppContext);
-  const navigate = useNavigate();
+
+  const getCategoryById = () => {
+    CategoryService.getById(id)
+      .then((response: IResource<ICategory>) => {
+        const category = response.data;
+        setName(category.name);
+        setDescription(category.description || '');
+        setPublishedAt(category.published_at);
+      })
+  }
 
   const isValid = () => {
     let isValid = true
@@ -53,21 +63,19 @@ const Create: React.FunctionComponent = () => {
       seller_id: currentUser?.id,
     }
 
-    CategoryService.create(body)
+    CategoryService.update(id, body)
       .then((response: IResource<ICategory>) => {
         setToast({
           open: true,
-          message: 'New category has been created successfully!',
+          message: 'Category has been updated successfully!',
           type: 'success',
         })
-
-        const category = response.data;
-        navigate(`/categories/${category.id}`);
+        getCategoryById();
       })
       .catch(() => {
         setToast({
           open: true,
-          message: 'Failed to create category, please check your input!',
+          message: 'Failed to update category, please check your input!',
           type: 'error',
         })
       })
@@ -85,6 +93,10 @@ const Create: React.FunctionComponent = () => {
       setIsPublised(false);
     }
   }, [publishedAt]);
+
+  useEffect(() => {
+    getCategoryById();
+  }, [id]);
 
   return <>
     <Breadcrumbs
@@ -109,7 +121,7 @@ const Create: React.FunctionComponent = () => {
         Categories
       </Link>
       <Typography fontSize="inherit">
-        Create
+        Edit
       </Typography>
     </Breadcrumbs>
 
@@ -122,7 +134,7 @@ const Create: React.FunctionComponent = () => {
       gap: 1
     }}>
       <Typography level="h1" fontSize="xl4">
-        Create New Category
+        Edit Category
       </Typography>
 
       <Button size="sm" color="primary"
@@ -137,6 +149,9 @@ const Create: React.FunctionComponent = () => {
     <Grid container spacing={2} sx={{ flexGrow: 1 }}>
       <Grid xs={12} md={8}>
         <Card>
+          <Typography level="h2" fontSize="lg" sx={{ mb: 0.5 }}>
+            Basic Info
+          </Typography>
           <Grid xs={12}>
             <FormControl sx={{ mb: 2 }}>
               <FormLabel>Name</FormLabel>
@@ -159,6 +174,9 @@ const Create: React.FunctionComponent = () => {
       </Grid>
       <Grid xs={12} md={4}>
         <Card>
+          <Typography level="h2" fontSize="lg" sx={{ mb: 0.5 }}>
+            Settings
+          </Typography>
           <Grid xs={8}>
             <FormControl sx={{ mb: 2 }}>
               <FormLabel>Publish At</FormLabel>
@@ -182,4 +200,4 @@ const Create: React.FunctionComponent = () => {
   </>
 }
 
-export default Create
+export default Edit
