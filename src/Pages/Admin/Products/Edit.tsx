@@ -99,7 +99,7 @@ const Edit: React.FunctionComponent = () => {
 
     const formData = new FormData();
 
-    if (images && images.length > 0 && images[0].name) {
+    if (images && images.length > 0 && images[0]?.name) {
       formData.append("image", images[0], images[0].name);
     }
 
@@ -255,7 +255,6 @@ const Edit: React.FunctionComponent = () => {
                 </FormControl>
               </Grid>
               <Grid xs={12} md={6}>
-
                 <FormControl>
                   <FormLabel>Sale Price</FormLabel>
                   <Input
@@ -295,6 +294,19 @@ const Edit: React.FunctionComponent = () => {
                   {errors?.quantity && <Typography color="danger" fontSize="sm">{errors?.quantity}</Typography>}
                 </FormControl>
               </Grid>
+              <Grid xs={12} md={6}>
+                <FormControl sx={{ mb: 2 }}>
+                  <FormLabel>Unit</FormLabel>
+                  <Input placeholder="Unit (pieces, pounds, kilograms, etc.)"
+                    type="text"
+                    name="unit"
+                    value={unit}
+                    onChange={e => setUnit(e.target.value)}
+                    error={!!errors?.unit}
+                  />
+                  {errors?.unit && <Typography color="danger" fontSize="sm">{errors?.unit}</Typography>}
+                </FormControl>
+              </Grid>
             </Grid>
           </Card>
         </Grid >
@@ -328,18 +340,6 @@ const Edit: React.FunctionComponent = () => {
                   sx={{ ml: 2 }}
                 />
               </FormControl>
-              <FormControl sx={{ mb: 2 }}>
-                <FormLabel>Unit</FormLabel>
-                <Input placeholder="Unit (pieces, pounds, kilograms, etc.)"
-                  type="text"
-                  name="unit"
-                  value={unit}
-                  onChange={e => setUnit(e.target.value)}
-                  error={!!errors?.unit}
-                />
-                {errors?.unit && <Typography color="danger" fontSize="sm">{errors?.unit}</Typography>}
-              </FormControl>
-
               <FormControl sx={{ mb: 2 }}>
                 <FormLabel>Category</FormLabel>
                 <Autocomplete

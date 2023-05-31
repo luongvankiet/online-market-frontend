@@ -276,6 +276,20 @@ const Create: React.FunctionComponent = () => {
                   {errors?.quantity && <Typography color="danger" fontSize="sm">{errors?.quantity}</Typography>}
                 </FormControl>
               </Grid>
+
+              <Grid xs={12} md={6}>
+                <FormControl sx={{ mb: 2 }}>
+                  <FormLabel>Unit</FormLabel>
+                  <Input placeholder="Unit (pieces, pounds, kilograms, etc.)"
+                    type="text"
+                    name="unit"
+                    value={unit}
+                    onChange={e => setUnit(e.target.value)}
+                    error={!!errors?.unit}
+                  />
+                  {errors?.unit && <Typography color="danger" fontSize="sm">{errors?.unit}</Typography>}
+                </FormControl>
+              </Grid>
             </Grid>
           </Card>
         </Grid >
@@ -308,17 +322,6 @@ const Create: React.FunctionComponent = () => {
                   onChange={(event) => setStatus(event.target.checked ? 'in_stock' : 'out_of_stock')}
                   sx={{ ml: 2 }}
                 />
-              </FormControl>
-              <FormControl sx={{ mb: 2 }}>
-                <FormLabel>Unit</FormLabel>
-                <Input placeholder="Unit (pieces, pounds, kilograms, etc.)"
-                  type="text"
-                  name="unit"
-                  value={unit}
-                  onChange={e => setUnit(e.target.value)}
-                  error={!!errors?.unit}
-                />
-                {errors?.unit && <Typography color="danger" fontSize="sm">{errors?.unit}</Typography>}
               </FormControl>
 
               <FormControl sx={{ mb: 2 }}>
